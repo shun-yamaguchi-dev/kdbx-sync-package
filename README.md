@@ -1,4 +1,4 @@
-# kdbx-sync-package
+# KDBX Sync
 ---
 
 # To Begin
