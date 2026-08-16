@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euo pipefail
+
+source "$HOME/.config/kdbx-sync/.env"
+
+mkdir -p "$STATE_DIR"
+LOG="$LOG_FILE"
+
+source "$STATE_DIR/lib.sh"
+
+log() {
+  echo "[$(date '+%F %T')] [PUSH] $1" >>"$LOG"
+}
+
+acquire_lock || exit 0
+
+log "started"
+
+TMP="$STATE_DIR/tmp_push"
+rm -rf "$TMP"
+mkdir -p "$TMP"
+
+cp "$LOCAL" "$TMP/local.kdbx"
+cp "$CLOUD" "$TMP/cloud.kdbx"
+
+chmod 600 "$TMP"/*.kdbx "$KEYFILE"
+
+log "merge start"
+
+"$KEEPASSXC" merge \
+  "$TMP/cloud.kdbx" \
+  "$TMP/local.kdbx" \
+  -k "$KEYFILE" \
+  --key-file-from "$KEYFILE" \
+  --no-password \
+  --no-password-from
+
+log "merge end"
+
+# Block nuncence rewrite of ClOUD
+if ! cmp -s "$TMP/cloud.kdbx" "$CLOUD"; then
+  cp "$TMP/cloud.kdbx" "$CLOUD"
+  log "write CLOUD (changed)"
+  date +%s >"$STATE_DIR/last_push_time"
+else
+  log "skip CLOUD write (no change)"
+fi
+
+log "done"

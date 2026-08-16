@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euo pipefail
+
+source "$HOME/.config/kdbx-sync/.env"
+
+mkdir -p "$STATE_DIR"
+LOG="$LOG_FILE"
+
+source "$STATE_DIR/lib.sh"
+
+log() {
+  echo "[$(date '+%F %T')] [PULL] $1" >>"$LOG"
+}
+
+acquire_lock || exit 0
+
+log "started"
+
+TMP="$STATE_DIR/tmp_pull"
+rm -rf "$TMP"
+mkdir -p "$TMP"
+
+cp "$LOCAL" "$TMP/local.kdbx"
+cp "$CLOUD" "$TMP/cloud.kdbx"
+
+chmod 600 "$TMP"/*.kdbx "$KEYFILE"
+
+log "merge start"
+
+"$KEEPASSXC" merge \
+  "$TMP/local.kdbx" \
+  "$TMP/cloud.kdbx" \
+  -k "$KEYFILE" \
+  --key-file-from "$KEYFILE" \
+  --no-password \
+  --no-password-from
+
+log "merge end"
+
+if ! cmp -s "$TMP/local.kdbx" "$LOCAL"; then
+  cp "$TMP/local.kdbx" "$LOCAL"
+  log "write LOCAL (changed)"
+else
+  log "skip LOCAL (no change)"
+fi
+
+date +%s >"$STATE_DIR/last_pull_time"
+
+log "done"

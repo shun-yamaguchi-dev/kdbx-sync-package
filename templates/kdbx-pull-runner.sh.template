@@ -1,0 +1,61 @@
+#!/bin/bash
+set -euo pipefail
+
+source "$HOME/.config/kdbx-sync/.env"
+
+export PATH="$PATH_ENV"
+
+mkdir -p "$STATE_DIR"
+LOG="$LOG_FILE"
+
+log() {
+  echo "[$(date '+%F %T')] [PULL-RUNNER] $1" >>"$LOG"
+}
+
+LAST_PUSH_TIME="$STATE_DIR/last_push_time"
+
+schedule_pull() {
+
+  log "schedule_pull called"
+
+  local NOW
+  NOW=$(date +%s)
+
+  echo "$NOW" >"$STATE_DIR/pull_event_time"
+
+  (
+    sleep "$PULL_DEBOUNCE"
+
+    LAST=$(cat "$STATE_DIR/pull_event_time")
+
+    if [[ "$LAST" != "$NOW" ]]; then
+      log "pull debounced"
+      exit 0
+    fi
+
+    log "trigger pull"
+    /usr/local/bin/kdbx-pull.sh
+  ) &
+}
+
+WATCH_DIR="$WATCH_CLOUD_DIR"
+
+log "watch CLOUD: $WATCH_DIR"
+
+"$FSWATCH" -0 -r "$WATCH_DIR" |
+  while IFS= read -r -d '' event; do
+
+    log "event: $event"
+
+    if [[ -f "$LAST_PUSH_TIME" ]]; then
+      NOW=$(date +%s)
+      LAST=$(cat "$LAST_PUSH_TIME")
+
+      if ((NOW - LAST < IGNORE_WINDOW)); then
+        log "ignored push-originated cloud event"
+        continue
+      fi
+    fi
+
+    schedule_pull
+  done

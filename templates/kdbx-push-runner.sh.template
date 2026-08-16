@@ -1,0 +1,71 @@
+#!/bin/bash
+set -euo pipefail
+
+source "$HOME/.config/kdbx-sync/.env"
+
+export PATH="$PATH_ENV"
+
+mkdir -p "$STATE_DIR"
+LOG="$LOG_FILE"
+
+log() {
+  echo "[$(date '+%F %T')] [PUSH-RUNNER] $1" >>"$LOG"
+}
+
+LAST_PULL_TIME="$STATE_DIR/last_pull_time"
+PUSH_LOCK="$STATE_DIR/push_runner.lock"
+
+schedule_push() {
+
+  log "schedule_push called"
+
+  local NOW
+  NOW=$(date +%s)
+
+  echo "$NOW" >"$STATE_DIR/push_event_time"
+
+  (
+    sleep "$PUSH_DEBOUNCE"
+
+    LAST=$(cat "$STATE_DIR/push_event_time")
+
+    if [[ "$LAST" != "$NOW" ]]; then
+      log "push debounced"
+      exit 0
+    fi
+
+    # Block double execution
+    if [[ -f "$PUSH_LOCK" ]]; then
+      log "push already running"
+      exit 0
+    fi
+
+    touch "$PUSH_LOCK"
+    trap 'rm -f "$PUSH_LOCK"' EXIT
+
+    log "trigger push"
+    /usr/local/bin/kdbx-push.sh
+  ) &
+}
+
+WATCH_DIR="$WATCH_LOCAL_DIR"
+
+log "watch LOCAL: $WATCH_DIR"
+
+"$FSWATCH" -0 -r "$WATCH_DIR" |
+  while IFS= read -r -d '' event; do
+
+    log "event: $event"
+
+    if [[ -f "$LAST_PULL_TIME" ]]; then
+      NOW=$(date +%s)
+      LAST=$(cat "$LAST_PULL_TIME")
+
+      if ((NOW - LAST < IGNORE_WINDOW)); then
+        log "ignored pull-originated change"
+        continue
+      fi
+    fi
+
+    schedule_push
+  done
