@@ -1,4 +1,10 @@
+# general
+*.DS_Store
+.config/
 *.env
 ! *.env.template
 *.plist
 ! *.plist.template
+
+# build artifacts
+/build/

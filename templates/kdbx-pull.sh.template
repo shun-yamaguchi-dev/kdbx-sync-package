@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$HOME/.config/kdbx-sync/.env"
+source "$HOME/.config/kdbx-sync/vaults/vault1/.env"
 
 mkdir -p "$STATE_DIR"
 LOG="$LOG_FILE"

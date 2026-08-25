@@ -1,0 +1,279 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.KDBXSync-arm64-apple-macosx-debug.module" : {
+      "executable" : "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "fileList" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/sources",
+      "importPath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Vault.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "KDBXSync",
+      "moduleOutputPath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/Modules/KDBXSync.swiftmodule",
+      "objects" : [
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Configuration.swift.o",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Vault.swift.o",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx10.13",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "KDBXSync_main",
+        "-color-diagnostics",
+        "-swift-version",
+        "6",
+        "-I",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-L",
+        "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+        "-plugin-path",
+        "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "kdbx_sync_package"
+      ],
+      "outputFileMapPath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Configuration.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Vault.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/Modules/KDBXSync.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Configuration.swift",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Vault.swift",
+        "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/main.swift"
+      ],
+      "tempsPath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "KDBXSync" : [
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc",
+      "-module-name",
+      "KDBXSync",
+      "-package-name",
+      "kdbx_sync_package",
+      "-c",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Configuration.swift",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Vault.swift",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/main.swift",
+      "-I",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx10.13",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "KDBXSync_main",
+      "-color-diagnostics",
+      "-swift-version",
+      "6",
+      "-I",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-L",
+      "/Library/Developer/CommandLineTools/Library/Developer/Frameworks",
+      "-plugin-path",
+      "/Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "kdbx_sync_package",
+      "-driver-use-frontend-path",
+      "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "KDBXSync" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync-entitlement.plist"
+    },
+    "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/Model/Vault.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/Sources/KDBXSync/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/sources"
+    },
+    "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Configuration.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/Vault.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/KDBXSync.product/Objects.LinkFileList"
+    },
+    "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Library/Developer/CommandLineTools/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/shuny/Nextcloud/sync-root/userdata/projects/KDBX Sync/kdbx-sync-package/.build/arm64-apple-macosx/debug/swift-version--1AB21518FC5DEDBE.txt"
+    }
+  }
+}
