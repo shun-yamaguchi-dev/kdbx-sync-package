@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$HOME/.config/kdbx-sync/.env"
+source "$HOME/.config/kdbx-sync/kdbx-sync.env"
 
 mkdir -p "$STATE_DIR"
 LOG="$LOG_FILE"
@@ -21,14 +21,14 @@ rm -rf "$TMP"
 mkdir -p "$TMP"
 
 cp "$LOCAL" "$TMP/local.kdbx"
-cp "$CLOUD" "$TMP/cloud.kdbx"
+cp "$REMOTE" "$TMP/remote.kdbx"
 
 chmod 600 "$TMP"/*.kdbx "$KEYFILE"
 
 log "merge start"
 
 "$KEEPASSXC" merge \
-  "$TMP/cloud.kdbx" \
+  "$TMP/remote.kdbx" \
   "$TMP/local.kdbx" \
   -k "$KEYFILE" \
   --key-file-from "$KEYFILE" \
@@ -37,13 +37,13 @@ log "merge start"
 
 log "merge end"
 
-# Block nuncence rewrite of ClOUD
-if ! cmp -s "$TMP/cloud.kdbx" "$CLOUD"; then
-  cp "$TMP/cloud.kdbx" "$CLOUD"
-  log "write CLOUD (changed)"
+# Publish merged state to REMOTE only when it actually changed.
+if ! cmp -s "$TMP/remote.kdbx" "$REMOTE"; then
+  cp "$TMP/remote.kdbx" "$REMOTE"
+  log "write REMOTE (changed)"
   date +%s >"$STATE_DIR/last_push_time"
 else
-  log "skip CLOUD write (no change)"
+  log "skip REMOTE write (no change)"
 fi
 
 log "done"

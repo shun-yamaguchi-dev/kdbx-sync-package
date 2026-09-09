@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$HOME/.config/kdbx-sync/vaults/vault1/.env"
+source "$HOME/.config/kdbx-sync/kdbx-sync.env"
 
 mkdir -p "$STATE_DIR"
 LOG="$LOG_FILE"
@@ -21,7 +21,7 @@ rm -rf "$TMP"
 mkdir -p "$TMP"
 
 cp "$LOCAL" "$TMP/local.kdbx"
-cp "$CLOUD" "$TMP/cloud.kdbx"
+cp "$REMOTE" "$TMP/remote.kdbx"
 
 chmod 600 "$TMP"/*.kdbx "$KEYFILE"
 
@@ -29,7 +29,7 @@ log "merge start"
 
 "$KEEPASSXC" merge \
   "$TMP/local.kdbx" \
-  "$TMP/cloud.kdbx" \
+  "$TMP/remote.kdbx" \
   -k "$KEYFILE" \
   --key-file-from "$KEYFILE" \
   --no-password \

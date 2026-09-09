@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$HOME/.config/kdbx-sync/vaults/vault1/.env"
+source "$HOME/.config/kdbx-sync/kdbx-sync.env"
 
 export PATH="$PATH_ENV"
 
@@ -38,9 +38,9 @@ schedule_pull() {
   ) &
 }
 
-WATCH_DIR="$WATCH_CLOUD_DIR"
+WATCH_DIR="$WATCH_REMOTE_DIR"
 
-log "watch CLOUD: $WATCH_DIR"
+log "watch REMOTE: $WATCH_DIR"
 
 "$FSWATCH" -0 -r "$WATCH_DIR" |
   while IFS= read -r -d '' event; do
@@ -52,7 +52,7 @@ log "watch CLOUD: $WATCH_DIR"
       LAST=$(cat "$LAST_PUSH_TIME")
 
       if ((NOW - LAST < IGNORE_WINDOW)); then
-        log "ignored push-originated cloud event"
+        log "ignored push-originated remote event"
         continue
       fi
     fi
