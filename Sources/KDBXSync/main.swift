@@ -1,5 +1,4 @@
 import Foundation
-import TOML
 
 let configurationURL = FileManager.default.homeDirectoryForCurrentUser
     .appendingPathComponent(".config/kdbx-sync/config.toml")
@@ -9,31 +8,21 @@ do {
         configurationURL: configurationURL
     )
 
-    let loader = ConfigurationLoader(
-        store: store
+    let validator = ConfigurationValidator()
+
+    let manager = ConfigurationManager(
+        store: store,
+        validator: validator
     )
 
-    let configuration = try loader.load()
+    let commandHandler = CommandHandler(
+        manager: manager
+    )
 
-    print("KeepassXC: \(configuration.global.keepassxc.path)")
-    print("fswatch: \(configuration.global.fswatch.path)")
-    print("Push debounce: \(configuration.global.pushDebounce)")
-    print("Pull debounce: \(configuration.global.pullDebounce)")
-    print("Ignore window: \(configuration.global.ignoreWindow)")
-
-    for vault in configuration.vaults {
-        print("")
-        print("Vault:")
-        print("  ID: \(vault.id)")
-        print("  Name: \(vault.name)")
-        print("  Enabled: \(vault.enabled)")
-        print("  Local: \(vault.localPath.path)")
-        print("  Cloud: \(vault.cloudPath.path)")
-        print("  Keyfile: \(vault.keyfilePath.path)")
-    }
-
+    try commandHandler.execute(
+        arguments: CommandLine.arguments.dropFirst()
+    )
 } catch {
-    print("Failed to load configuration:")
-    print("Configuration error: \(error.localizedDescription)")
+    print("Error: \(error.localizedDescription)")
     exit(1)
 }

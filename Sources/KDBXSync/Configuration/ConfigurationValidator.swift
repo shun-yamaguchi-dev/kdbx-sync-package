@@ -24,6 +24,7 @@ struct ConfigurationValidator {
         )
 
         var vaultIDs = Set<UUID>()
+        var vaultNames = Set<String>()
 
         let vaults = try decoded.vaults.map { decodedVault in
             guard vaultIDs.insert(decodedVault.id).inserted else {
@@ -32,6 +33,12 @@ struct ConfigurationValidator {
 
             guard !decodedVault.name.isEmpty else {
                 throw ConfigurationError.emptyVaultName
+            }
+
+            guard vaultNames.insert(decodedVault.name).inserted else {
+                throw ConfigurationError.duplicateVaultName(
+                    decodedVault.name
+                )
             }
 
             return Vault(

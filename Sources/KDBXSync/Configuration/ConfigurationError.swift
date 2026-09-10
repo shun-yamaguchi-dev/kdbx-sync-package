@@ -3,9 +3,12 @@ import Foundation
 enum ConfigurationError: Error {
     case emptyVaultList
     case duplicateVaultID(UUID)
+    case duplicateVaultName(String)
     case emptyVaultName
     case invalidPath(String)
     case invalidDebounce(String)
+    case vaultNotFound(String)
+    case vaultNameAlreadyExists(String)
 }
 
 extension ConfigurationError: LocalizedError {
@@ -18,6 +21,9 @@ extension ConfigurationError: LocalizedError {
         case .duplicateVaultID(let id):
             return "vault ID '\(id)' is used more than once."
 
+        case .duplicateVaultName(let name):
+            return "vault name '\(name)' is used more than once."
+
         case .emptyVaultName:
             return "vault name cannot be empty."
 
@@ -26,6 +32,12 @@ extension ConfigurationError: LocalizedError {
 
         case .invalidDebounce(let name):
             return "'\(name)' must be greater than or equal to 0."
+
+        case .vaultNotFound(let name):
+            return "vault '\(name)' was not found."
+
+        case .vaultNameAlreadyExists(let name):
+            return "vault name '\(name)' is already in use."
         }
     }
 }
