@@ -1,12 +1,12 @@
 import Foundation
 
-struct DecodedGlobalConfiguration: Decodable {
-    let keepassxc: String
-    let fswatch: String
+struct DecodedGlobalConfiguration: Codable {
+    var keepassxc: String
+    var fswatch: String
 
-    let pushDebounce: Int
-    let pullDebounce: Int
-    let ignoreWindow: Int
+    var pushDebounce: Int
+    var pullDebounce: Int
+    var ignoreWindow: Int
 
     enum CodingKeys: String, CodingKey {
         case keepassxc
@@ -17,21 +17,21 @@ struct DecodedGlobalConfiguration: Decodable {
     }
 }
 
-struct DecodedConfiguration: Decodable {
-    let global: DecodedGlobalConfiguration
-    let vaults: [DecodedVault]
+struct DecodedConfiguration: Codable {
+    var global: DecodedGlobalConfiguration
+    var vaults: [DecodedVault]
 }
 
 struct GlobalConfiguration {
-    let keepassxc: URL
-    let fswatch: URL
+    var keepassxc: URL
+    var fswatch: URL
 
-    let pushDebounce: Int
-    let pullDebounce: Int
-    let ignoreWindow: Int
+    var pushDebounce: Int
+    var pullDebounce: Int
+    var ignoreWindow: Int
 }
 
 struct Configuration {
-    let global: GlobalConfiguration
-    let vaults: [Vault]
+    var global: GlobalConfiguration
+    var vaults: [Vault]
 }

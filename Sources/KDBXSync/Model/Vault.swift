@@ -1,17 +1,17 @@
 import Foundation
 
-struct DecodedVault: Decodable {
-    let id: UUID
-    let name: String
-    let enabled: Bool
+struct DecodedVault: Codable {
+    var id: UUID
+    var name: String
+    var enabled: Bool
 
-    let localPath: String
-    let localWatchPath: String
+    var localPath: String
+    var localWatchPath: String
 
-    let cloudPath: String
-    let cloudWatchPath: String
+    var cloudPath: String
+    var cloudWatchPath: String
 
-    let keyfilePath: String
+    var keyfilePath: String
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -29,15 +29,15 @@ struct DecodedVault: Decodable {
 }
 
 struct Vault {
-    let id: UUID
-    let name: String
-    let enabled: Bool
+    var id: UUID
+    var name: String
+    var enabled: Bool
 
-    let localPath: URL
-    let localWatchPath: URL
+    var localPath: URL
+    var localWatchPath: URL
 
-    let cloudPath: URL
-    let cloudWatchPath: URL
+    var cloudPath: URL
+    var cloudWatchPath: URL
 
-    let keyfilePath: URL
+    var keyfilePath: URL
 }

@@ -1,10 +1,18 @@
 import Foundation
+import TOML
 
 let configurationURL = FileManager.default.homeDirectoryForCurrentUser
     .appendingPathComponent(".config/kdbx-sync/config.toml")
 
 do {
-    let loader = ConfigurationLoader(configurationURL: configurationURL)
+    let store = ConfigurationStore(
+        configurationURL: configurationURL
+    )
+
+    let loader = ConfigurationLoader(
+        store: store
+    )
+
     let configuration = try loader.load()
 
     print("KeepassXC: \(configuration.global.keepassxc.path)")
@@ -23,6 +31,7 @@ do {
         print("  Cloud: \(vault.cloudPath.path)")
         print("  Keyfile: \(vault.keyfilePath.path)")
     }
+
 } catch {
     print("Failed to load configuration:")
     print("Configuration error: \(error.localizedDescription)")
