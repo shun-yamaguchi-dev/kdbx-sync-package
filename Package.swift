@@ -5,15 +5,25 @@ import PackageDescription
 let package = Package(
     name: "KDBXSync",
 
+    platforms: [
+    .macOS(.v13)
+    ],
+
     dependencies: [
-      // ecternal package
+        .package(
+            url: "https://github.com/mattt/swift-toml.git",
+            from: "2.0.0"
+        )
     ],
 
     targets: [
         .executableTarget(
             name: "KDBXSync",
             dependencies: [
-                // packages used by this executable
+                .product(
+                    name: "TOML",
+                    package: "swift-toml"
+                )
             ]
         )
     ]

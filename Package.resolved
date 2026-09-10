@@ -1,0 +1,15 @@
+{
+  "originHash" : "9c250db97fce7e297f03cfcc31ad8fceea63462be7c84c45a81ae141361ee3da",
+  "pins" : [
+    {
+      "identity" : "swift-toml",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mattt/swift-toml.git",
+      "state" : {
+        "revision" : "827506c90475e82d5a7f191f950fb3025cbdc0d6",
+        "version" : "2.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}
