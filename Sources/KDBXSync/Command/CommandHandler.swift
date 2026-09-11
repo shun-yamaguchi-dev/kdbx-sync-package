@@ -27,6 +27,11 @@ struct CommandHandler {
         }
 
         switch action {
+        case "add":
+            try addVault(
+            arguments: arguments.dropFirst()
+        )
+
         case "list":
             try listVaults(
                 arguments: arguments.dropFirst()
@@ -41,15 +46,79 @@ struct CommandHandler {
             try renameVault(
                 arguments: arguments.dropFirst()
             )   
+        
+        case "remove":
+            try removeVault(
+                arguments: arguments.dropFirst()
+            )
 
         default:
             throw CommandError.unknownCommand(
                 "vault \(action)"
             )
         }
-   }
+    }
 
-   private func listVaults(
+    private func addVault(
+        arguments: ArraySlice<String>
+    ) throws {
+        var arguments = Array(arguments)
+
+        guard let name = arguments.first else {
+            throw CommandError.invalidArguments
+        }
+
+        arguments.removeFirst()
+
+        var options: [String: String] = [:]
+
+        while !arguments.isEmpty {
+            let option = arguments.removeFirst()
+
+            guard option.hasPrefix("--") else {
+                throw CommandError.invalidArguments
+            }
+
+            guard !arguments.isEmpty else {
+                throw CommandError.invalidArguments
+            }
+
+            let value = arguments.removeFirst()
+
+            guard !value.hasPrefix("--") else {
+                throw CommandError.invalidArguments
+            }
+
+            options[option] = value
+        }
+
+        guard
+            let localPath = options["--local-path"],
+            let localWatchPath = options["--local-watch-path"],
+            let cloudPath = options["--cloud-path"],
+            let cloudWatchPath = options["--cloud-watch-path"],
+            let keyfilePath = options["--keyfile-path"]
+        else {
+            throw CommandError.invalidArguments
+        }
+
+        guard options.count == 5 else {
+            throw CommandError.invalidArguments
+        }
+
+        try manager.addVault(
+            name: name,
+            localPath: localPath,
+            localWatchPath: localWatchPath,
+            cloudPath: cloudPath,
+            cloudWatchPath: cloudWatchPath,
+            keyfilePath: keyfilePath
+        )
+
+        print("Added vault '\(name)'.")
+    }
+
+    private func listVaults(
         arguments: ArraySlice<String>
     ) throws {
         guard arguments.isEmpty else {
@@ -112,5 +181,21 @@ struct CommandHandler {
         )
 
         print("Renamed vault '\(oldName)' to '\(newName)'.")
+    }
+
+    private func removeVault(
+        arguments: ArraySlice<String>
+    ) throws {
+        guard arguments.count == 1 else {
+            throw CommandError.invalidArguments
+        }
+
+        let name = arguments[arguments.startIndex]
+
+        try manager.removeVault(
+            name: name
+        )
+
+        print("Removed vault '\(name)'.")
     }
 }

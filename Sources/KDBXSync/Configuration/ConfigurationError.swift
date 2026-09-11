@@ -9,10 +9,10 @@ enum ConfigurationError: Error {
     case invalidDebounce(String)
     case vaultNotFound(String)
     case vaultNameAlreadyExists(String)
+    case cannotRemoveLastVault
 }
 
 extension ConfigurationError: LocalizedError {
-
     var errorDescription: String? {
         switch self {
         case .emptyVaultList:
@@ -38,6 +38,9 @@ extension ConfigurationError: LocalizedError {
 
         case .vaultNameAlreadyExists(let name):
             return "vault name '\(name)' is already in use."
+
+        case .cannotRemoveLastVault:
+            return "cannot remove the last remaining vault."
         }
     }
 }
