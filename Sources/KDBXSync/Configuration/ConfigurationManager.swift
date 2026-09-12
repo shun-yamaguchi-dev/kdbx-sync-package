@@ -104,4 +104,27 @@ struct ConfigurationManager {
 
         try store.save(decoded)
     }
+
+    func setVaultEnabled(
+        name: String,
+        enabled: Bool
+    ) throws {
+        var decoded = try store.loadDecoded()
+
+        guard let vaultIndex = decoded.vaults.firstIndex(
+            where: { $0.name == name }
+        ) else {
+            throw ConfigurationError.vaultNotFound(name)
+        }
+
+        guard decoded.vaults[vaultIndex].enabled != enabled else {
+            return
+        }
+
+        decoded.vaults[vaultIndex].enabled = enabled
+
+        _ = try validator.validate(decoded)
+
+        try store.save(decoded)
+    }
 }

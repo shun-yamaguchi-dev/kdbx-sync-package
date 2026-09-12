@@ -51,6 +51,18 @@ struct CommandHandler {
             try removeVault(
                 arguments: arguments.dropFirst()
             )
+        
+        case "enable":
+            try setVaultEnabled(
+                arguments: arguments.dropFirst(),
+                enabled: true
+            )
+
+        case "disable":
+            try setVaultEnabled(
+                arguments: arguments.dropFirst(),
+                enabled: false
+            )
 
         default:
             throw CommandError.unknownCommand(
@@ -89,9 +101,13 @@ struct CommandHandler {
                 throw CommandError.invalidArguments
             }
 
+            guard options[option] == nil else {
+            throw CommandError.invalidArguments
+            }
+
             options[option] = value
         }
-
+        
         guard
             let localPath = options["--local-path"],
             let localWatchPath = options["--local-watch-path"],
@@ -185,6 +201,23 @@ struct CommandHandler {
 
     private func removeVault(
         arguments: ArraySlice<String>
+        ) throws {
+            guard arguments.count == 1 else {
+                throw CommandError.invalidArguments
+            }
+
+            let name = arguments[arguments.startIndex]
+
+            try manager.removeVault(
+                name: name
+            )
+
+            print("Removed vault '\(name)'.")
+        }
+
+        private func setVaultEnabled(
+        arguments: ArraySlice<String>,
+        enabled: Bool
     ) throws {
         guard arguments.count == 1 else {
             throw CommandError.invalidArguments
@@ -192,10 +225,13 @@ struct CommandHandler {
 
         let name = arguments[arguments.startIndex]
 
-        try manager.removeVault(
-            name: name
+        try manager.setVaultEnabled(
+            name: name,
+            enabled: enabled
         )
+ 
+        let action = enabled ? "Enabled" : "Disabled"
 
-        print("Removed vault '\(name)'.")
+        print("\(action) vault '\(name)'.")
     }
 }
