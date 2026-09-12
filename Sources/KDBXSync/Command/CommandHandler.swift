@@ -111,8 +111,8 @@ struct CommandHandler {
         guard
             let localPath = options["--local-path"],
             let localWatchPath = options["--local-watch-path"],
-            let cloudPath = options["--cloud-path"],
-            let cloudWatchPath = options["--cloud-watch-path"],
+            let remotePath = options["--remote-path"],
+            let remoteWatchPath = options["--remote-watch-path"],
             let keyfilePath = options["--keyfile-path"]
         else {
             throw CommandError.invalidArguments
@@ -126,8 +126,8 @@ struct CommandHandler {
             name: name,
             localPath: localPath,
             localWatchPath: localWatchPath,
-            cloudPath: cloudPath,
-            cloudWatchPath: cloudWatchPath,
+            remotePath: remotePath,
+            remoteWatchPath: remoteWatchPath,
             keyfilePath: keyfilePath
         )
 
@@ -174,8 +174,8 @@ struct CommandHandler {
         print("Status:             \(status)")
         print("Local path:         \(vault.localPath.path)")
         print("Local watch path:   \(vault.localWatchPath.path)")
-        print("Cloud path:         \(vault.cloudPath.path)")
-        print("Cloud watch path:   \(vault.cloudWatchPath.path)")
+        print("remote path:         \(vault.remotePath.path)")
+        print("remote watch path:   \(vault.remoteWatchPath.path)")
         print("Keyfile path:       \(vault.keyfilePath.path)")
     }
 

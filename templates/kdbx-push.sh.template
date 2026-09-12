@@ -1,15 +1,169 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$HOME/.config/kdbx-sync/kdbx-sync.env"
+VAULT_ID=""
+LOCAL=""
+REMOTE=""
+KEYFILE=""
+KEEPASSXC=""
+STATE_DIR=""
+
+SEEN_ID=false
+SEEN_LOCAL=false
+SEEN_REMOTE=false
+SEEN_KEYFILE=false
+SEEN_KEEPASSXC=false
+SEEN_STATE_DIR=false
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --id)
+                [[ "$SEEN_ID" == false ]] || {
+                    echo "Error: --id specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --id requires a value." >&2
+                    exit 2
+                }
+
+                VAULT_ID="$2"
+                SEEN_ID=true
+                shift 2
+                ;;
+
+            --local-path)
+                [[ "$SEEN_LOCAL" == false ]] || {
+                    echo "Error: --local-path specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --local-path requires a value." >&2
+                    exit 2
+                }
+
+                LOCAL="$2"
+                SEEN_LOCAL=true
+                shift 2
+                ;;
+
+            --cloud-path)
+                [[ "$SEEN_REMOTE" == false ]] || {
+                    echo "Error: --cloud-path specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --cloud-path requires a value." >&2
+                    exit 2
+                }
+
+                REMOTE="$2"
+                SEEN_REMOTE=true
+                shift 2
+                ;;
+
+            --keyfile-path)
+                [[ "$SEEN_KEYFILE" == false ]] || {
+                    echo "Error: --keyfile-path specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --keyfile-path requires a value." >&2
+                    exit 2
+                }
+
+                KEYFILE="$2"
+                SEEN_KEYFILE=true
+                shift 2
+                ;;
+
+            --keepassxc)
+                [[ "$SEEN_KEEPASSXC" == false ]] || {
+                    echo "Error: --keepassxc specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --keepassxc requires a value." >&2
+                    exit 2
+                }
+
+                KEEPASSXC="$2"
+                SEEN_KEEPASSXC=true
+                shift 2
+                ;;
+
+            --state-dir)
+                [[ "$SEEN_STATE_DIR" == false ]] || {
+                    echo "Error: --state-dir specified more than once." >&2
+                    exit 2
+                }
+
+                [[ $# -ge 2 ]] || {
+                    echo "Error: --state-dir requires a value." >&2
+                    exit 2
+                }
+
+                STATE_DIR="$2"
+                SEEN_STATE_DIR=true
+                shift 2
+                ;;
+
+            *)
+                echo "Error: unknown argument: $1" >&2
+                exit 2
+                ;;
+        esac
+    }
+}
+
+require_arguments() {
+    [[ -n "$VAULT_ID" ]] || {
+        echo "Error: --id is required." >&2
+        exit 2
+    }
+
+    [[ -n "$LOCAL" ]] || {
+        echo "Error: --local-path is required." >&2
+        exit 2
+    }
+
+    [[ -n "$REMOTE" ]] || {
+        echo "Error: --cloud-path is required." >&2
+        exit 2
+    }
+
+    [[ -n "$KEYFILE" ]] || {
+        echo "Error: --keyfile-path is required." >&2
+        exit 2
+    }
+
+    [[ -n "$KEEPASSXC" ]] || {
+        echo "Error: --keepassxc is required." >&2
+        exit 2
+    }
+
+    [[ -n "$STATE_DIR" ]] || {
+        echo "Error: --state-dir is required." >&2
+        exit 2
+    }
+}
+
+parse_args "$@"
+require_arguments
 
 mkdir -p "$STATE_DIR"
-LOG="$LOG_FILE"
+LOG="$STATE_DIR/sync.log"
 
 source "$STATE_DIR/lib.sh"
 
 log() {
-  echo "[$(date '+%F %T')] [PUSH] $1" >>"$LOG"
+    echo "[$(date '+%F %T')] [PUSH] $1" >>"$LOG"
 }
 
 acquire_lock || exit 0
@@ -28,22 +182,22 @@ chmod 600 "$TMP"/*.kdbx "$KEYFILE"
 log "merge start"
 
 "$KEEPASSXC" merge \
-  "$TMP/remote.kdbx" \
-  "$TMP/local.kdbx" \
-  -k "$KEYFILE" \
-  --key-file-from "$KEYFILE" \
-  --no-password \
-  --no-password-from
+    "$TMP/remote.kdbx" \
+    "$TMP/local.kdbx" \
+    -k "$KEYFILE" \
+    --key-file-from "$KEYFILE" \
+    --no-password \
+    --no-password-from
 
 log "merge end"
 
 # Publish merged state to REMOTE only when it actually changed.
 if ! cmp -s "$TMP/remote.kdbx" "$REMOTE"; then
-  cp "$TMP/remote.kdbx" "$REMOTE"
-  log "write REMOTE (changed)"
-  date +%s >"$STATE_DIR/last_push_time"
+    cp "$TMP/remote.kdbx" "$REMOTE"
+    log "write REMOTE (changed)"
+    date +%s >"$STATE_DIR/last_push_time"
 else
-  log "skip REMOTE write (no change)"
+    log "skip REMOTE write (no change)"
 fi
 
 log "done"

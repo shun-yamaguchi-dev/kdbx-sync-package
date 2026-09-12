@@ -8,8 +8,8 @@ struct DecodedVault: Codable {
     var localPath: String
     var localWatchPath: String
 
-    var cloudPath: String
-    var cloudWatchPath: String
+    var remotePath: String
+    var remoteWatchPath: String
 
     var keyfilePath: String
 
@@ -21,8 +21,8 @@ struct DecodedVault: Codable {
         case localPath = "local_path"
         case localWatchPath = "local_watch_path"
 
-        case cloudPath = "cloud_path"
-        case cloudWatchPath = "cloud_watch_path"
+        case remotePath = "remote_path"
+        case remoteWatchPath = "remote_watch_path"
 
         case keyfilePath = "keyfile_path"
     }
@@ -36,8 +36,8 @@ struct Vault {
     var localPath: URL
     var localWatchPath: URL
 
-    var cloudPath: URL
-    var cloudWatchPath: URL
+    var remotePath: URL
+    var remoteWatchPath: URL
 
     var keyfilePath: URL
 }

@@ -14,8 +14,8 @@ struct ConfigurationManager {
         name: String,
         localPath: String,
         localWatchPath: String,
-        cloudPath: String,
-        cloudWatchPath: String,
+        remotePath: String,
+        remoteWatchPath: String,
         keyfilePath: String
     ) throws {
         var decoded = try store.loadDecoded()
@@ -32,8 +32,8 @@ struct ConfigurationManager {
             enabled: true,
             localPath: localPath,
             localWatchPath: localWatchPath,
-            cloudPath: cloudPath,
-            cloudWatchPath: cloudWatchPath,
+            remotePath: remotePath,
+            remoteWatchPath: remoteWatchPath,
             keyfilePath: keyfilePath
         )
 

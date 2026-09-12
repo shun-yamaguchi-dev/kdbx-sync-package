@@ -49,9 +49,9 @@ struct ConfigurationValidator {
                 localWatchPath: try validatedPath(
                     decodedVault.localWatchPath
                 ),
-                cloudPath: try validatedPath(decodedVault.cloudPath),
-                cloudWatchPath: try validatedPath(
-                    decodedVault.cloudWatchPath
+                remotePath: try validatedPath(decodedVault.remotePath),
+                remoteWatchPath: try validatedPath(
+                    decodedVault.remoteWatchPath
                 ),
                 keyfilePath: try validatedPath(
                     decodedVault.keyfilePath
