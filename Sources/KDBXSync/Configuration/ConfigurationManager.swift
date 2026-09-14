@@ -3,6 +3,20 @@ import Foundation
 struct ConfigurationManager {
     let store: ConfigurationStore
     let validator: ConfigurationValidator
+    let launchAgentManager: LaunchAgentManaging
+    let applicationPaths: ApplicationPaths
+
+    init(
+        store: ConfigurationStore,
+        validator: ConfigurationValidator,
+        launchAgentManager: LaunchAgentManaging,
+        applicationPaths: ApplicationPaths
+    ) {
+        self.store = store
+        self.validator = validator
+        self.launchAgentManager = launchAgentManager
+        self.applicationPaths = applicationPaths
+    }
 
     func loadConfiguration() throws -> Configuration {
         let decoded = try store.loadDecoded()
@@ -10,7 +24,7 @@ struct ConfigurationManager {
         return try validator.validate(decoded)
     }
 
-        func addVault(
+    func addVault(
         name: String,
         localPath: String,
         localWatchPath: String,
@@ -21,7 +35,7 @@ struct ConfigurationManager {
         var decoded = try store.loadDecoded()
 
         guard !decoded.vaults.contains(
-          where: { $0.name == name }
+            where: { $0.name == name }
         ) else {
             throw ConfigurationError.vaultNameAlreadyExists(name)
         }
@@ -29,7 +43,7 @@ struct ConfigurationManager {
         let vault = DecodedVault(
             id: UUID(),
             name: name,
-            enabled: true,
+            enabled: false,
             localPath: localPath,
             localWatchPath: localWatchPath,
             remotePath: remotePath,
@@ -98,6 +112,22 @@ struct ConfigurationManager {
             throw ConfigurationError.cannotRemoveLastVault
         }
 
+        let decodedVault = decoded.vaults[vaultIndex]
+
+        if decodedVault.enabled {
+            let configuration = try validator.validate(decoded)
+
+            guard let vault = configuration.vaults.first(
+                where: { $0.id == decodedVault.id }
+            ) else {
+                throw ConfigurationError.vaultNotFound(name)
+            }
+
+            try launchAgentManager.remove(
+                vault: vault
+            )
+        }
+
         decoded.vaults.remove(at: vaultIndex)
 
         _ = try validator.validate(decoded)
@@ -123,7 +153,25 @@ struct ConfigurationManager {
 
         decoded.vaults[vaultIndex].enabled = enabled
 
-        _ = try validator.validate(decoded)
+        let configuration = try validator.validate(decoded)
+
+        guard let vault = configuration.vaults.first(
+            where: { $0.name == name }
+        ) else {
+            throw ConfigurationError.vaultNotFound(name)
+        }
+
+        if enabled {
+            try launchAgentManager.install(
+                vault: vault,
+                configuration: configuration,
+                applicationPaths: applicationPaths
+            )
+        } else {
+            try launchAgentManager.remove(
+                vault: vault
+            )
+        }
 
         try store.save(decoded)
     }

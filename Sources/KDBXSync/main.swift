@@ -1,25 +1,9 @@
 import Foundation
 
-let configurationURL = FileManager.default.homeDirectoryForCurrentUser
-    .appendingPathComponent(".config/kdbx-sync/config.toml")
-
 do {
-    let store = ConfigurationStore(
-        configurationURL: configurationURL
-    )
+    let application = Application()
 
-    let validator = ConfigurationValidator()
-
-    let manager = ConfigurationManager(
-        store: store,
-        validator: validator
-    )
-
-    let commandHandler = CommandHandler(
-        manager: manager
-    )
-
-    try commandHandler.execute(
+    try application.run(
         arguments: CommandLine.arguments.dropFirst()
     )
 } catch {

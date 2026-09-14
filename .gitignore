@@ -2,9 +2,9 @@
 *.DS_Store
 .config/
 *.env
-! *.env.template
+!*.env.template
 *.plist
-! *.plist.template
+!*.plist.template
 
 # build artifacts
 /build/
