@@ -24,6 +24,28 @@ struct ConfigurationManager {
         return try validator.validate(decoded)
     }
 
+    func initializeConfiguration(
+        keepassxc: String,
+        fswatch: String,
+        pushDebounce: Int,
+        pullDebounce: Int,
+        ignoreWindow: Int
+    ) throws {
+        let global = DecodedGlobalConfiguration(
+            keepassxc: keepassxc,
+            fswatch: fswatch,
+            pushDebounce: pushDebounce,
+            pullDebounce: pullDebounce,
+            ignoreWindow: ignoreWindow
+        )
+
+        _ = try validator.validateGlobal(global)
+
+        try store.initialize(
+            DecodedConfiguration(global: global, vaults: [])
+        )
+    }
+
     func addVault(
         name: String,
         localPath: String,

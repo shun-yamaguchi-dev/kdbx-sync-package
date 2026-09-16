@@ -9,6 +9,11 @@ struct CommandHandler {
         }
 
         switch resource {
+        case "init":
+            try initializeConfiguration(
+                arguments: arguments.dropFirst()
+            )
+
         case "vault":
             try executeVaultCommand(
                 arguments: arguments.dropFirst()
@@ -17,6 +22,85 @@ struct CommandHandler {
         default:
             throw CommandError.unknownCommand(resource)
         }
+    }
+
+    private func initializeConfiguration(
+        arguments: ArraySlice<String>
+    ) throws {
+        var remaining = Array(arguments)
+        var options: [String: String] = [:]
+
+        while !remaining.isEmpty {
+            let option = remaining.removeFirst()
+
+            guard option.hasPrefix("--"),
+                  !remaining.isEmpty,
+                  options[option] == nil
+            else {
+                throw CommandError.invalidArguments
+            }
+
+            let value = remaining.removeFirst()
+
+            guard !value.hasPrefix("--") else {
+                throw CommandError.invalidArguments
+            }
+
+            options[option] = value
+        }
+
+        guard
+            let keepassxc = options.removeValue(forKey: "--keepassxc"),
+            let fswatch = options.removeValue(forKey: "--fswatch")
+        else {
+            throw CommandError.invalidArguments
+        }
+
+        let pushDebounce = try integerOption(
+            "--push-debounce",
+            from: &options,
+            defaultValue: 2
+        )
+        let pullDebounce = try integerOption(
+            "--pull-debounce",
+            from: &options,
+            defaultValue: 2
+        )
+        let ignoreWindow = try integerOption(
+            "--ignore-window",
+            from: &options,
+            defaultValue: 5
+        )
+
+        guard options.isEmpty else {
+            throw CommandError.invalidArguments
+        }
+
+        try manager.initializeConfiguration(
+            keepassxc: keepassxc,
+            fswatch: fswatch,
+            pushDebounce: pushDebounce,
+            pullDebounce: pullDebounce,
+            ignoreWindow: ignoreWindow
+        )
+
+        print("Created configuration. Add a vault with 'kdbx-sync vault add'.")
+    }
+
+    private func integerOption(
+        _ name: String,
+        from options: inout [String: String],
+        defaultValue: Int
+    ) throws -> Int {
+        guard let value = options.removeValue(forKey: name) else {
+            return defaultValue
+        }
+
+        guard let integer = Int(value) else {
+            throw CommandError.invalidArguments
+        }
+
+        return integer
     }
 
     private func executeVaultCommand(

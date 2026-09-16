@@ -1,36 +1,67 @@
 # KDBX Sync
----
 
-# To Begin
+KDBX Sync watches a local and a remotely synced copy of a KeePass database, then uses KeePassXC to merge changes in either direction. It uses launchd on macOS and keeps the database, key file, and synchronization storage under your control.
 
-This is a package that allows you to sync your KeePass database files (.kdbx) across different devices using various cloud storage services. It provides a simple interface to manage your database files and ensures that your data is always up-to-date. The UX is like using Bitwarden, but for KeePass databases (your own infra structure).
+## Requirements
 
-## The Purose
+- macOS 13 or later
+- KeePassXC command-line executable
+- `fswatch`
 
-The purpose of this package is to provide a seamless experience for users who want to keep their KeePass databases synchronized across multiple devices without relying on third-party services. By leveraging cloud storage services, users can maintain control over their data while ensuring that their password databases are always accessible and up-to-date.
+## Install
 
-## Features
+From the repository root:
 
-- Sync KeePass database files (.kdbx) across multiple devices.
-- Support for various cloud storage services (e.g., Google Drive, Dropbox, OneDrive).
-- Simple and intuitive user interface for managing database files.
-- Automatic conflict resolution to prevent data loss.
-- Secure encryption to protect your sensitive information.
-
-## Required Dirs/Files
-
+```bash
+./scripts/install.sh
 ```
-~/.config
-  |-- kdbx-sync
-        |-- config.env
+
+This installs the app in `~/Applications/KDBX Sync.app` and the `kdbx-sync` command in `~/.local/bin`. Ensure that directory is on your `PATH`.
+
+## First-time setup
+
+Create the global configuration once. Supply absolute paths to the KeePassXC executable and `fswatch`:
+
+```bash
+kdbx-sync init \
+  --keepassxc /Applications/KeePassXC.app/Contents/MacOS/keepassxc \
+  --fswatch /opt/homebrew/bin/fswatch
 ```
-Files are automatically created in the installation process, but you can also create them manually if needed. The `config.env` file contains the necessary configuration settings for the package to function properly.
 
+Optional timings are in seconds and default to `2`, `2`, and `5`:
 
-## Installation
+```bash
+kdbx-sync init \
+  --keepassxc /absolute/path/to/keepassxc \
+  --fswatch /absolute/path/to/fswatch \
+  --push-debounce 2 \
+  --pull-debounce 2 \
+  --ignore-window 5
+```
 
-To install the kdbx-sync-package, follow these steps:
+The command creates `~/.config/kdbx-sync/config.toml`. It will not overwrite an existing configuration.
 
-(wip)
+## Vault commands
 
----
+Add a vault, then enable it when its paths are correct:
+
+```bash
+kdbx-sync vault add personal \
+  --local-path /absolute/path/to/local.kdbx \
+  --local-watch-path /absolute/path/to/local-directory \
+  --remote-path /absolute/path/to/remote.kdbx \
+  --remote-watch-path /absolute/path/to/remote-directory \
+  --keyfile-path /absolute/path/to/keyfile
+
+kdbx-sync vault enable personal
+```
+
+Other supported commands are:
+
+```text
+kdbx-sync vault list
+kdbx-sync vault show NAME
+kdbx-sync vault rename OLD_NAME NEW_NAME
+kdbx-sync vault disable NAME
+kdbx-sync vault remove NAME
+```

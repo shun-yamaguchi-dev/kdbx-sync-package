@@ -6,22 +6,7 @@ struct ConfigurationValidator {
             throw ConfigurationError.emptyVaultList
         }
 
-        let global = GlobalConfiguration(
-            keepassxc: try validatedPath(decoded.global.keepassxc),
-            fswatch: try validatedPath(decoded.global.fswatch),
-            pushDebounce: try validatedDebounce(
-                decoded.global.pushDebounce,
-                name: "push_debounce"
-            ),
-            pullDebounce: try validatedDebounce(
-                decoded.global.pullDebounce,
-                name: "pull_debounce"
-            ),
-            ignoreWindow: try validatedDebounce(
-                decoded.global.ignoreWindow,
-                name: "ignore_window"
-            )
-        )
+        let global = try validateGlobal(decoded.global)
 
         var vaultIDs = Set<UUID>()
         var vaultNames = Set<String>()
@@ -62,6 +47,27 @@ struct ConfigurationValidator {
         return Configuration(
             global: global,
             vaults: vaults
+        )
+    }
+
+    func validateGlobal(
+        _ decoded: DecodedGlobalConfiguration
+    ) throws -> GlobalConfiguration {
+        GlobalConfiguration(
+            keepassxc: try validatedPath(decoded.keepassxc),
+            fswatch: try validatedPath(decoded.fswatch),
+            pushDebounce: try validatedDebounce(
+                decoded.pushDebounce,
+                name: "push_debounce"
+            ),
+            pullDebounce: try validatedDebounce(
+                decoded.pullDebounce,
+                name: "pull_debounce"
+            ),
+            ignoreWindow: try validatedDebounce(
+                decoded.ignoreWindow,
+                name: "ignore_window"
+            )
         )
     }
 

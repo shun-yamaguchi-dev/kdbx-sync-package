@@ -10,6 +10,7 @@ enum ConfigurationError: Error {
     case vaultNotFound(String)
     case vaultNameAlreadyExists(String)
     case cannotRemoveLastVault
+    case configurationAlreadyExists
 }
 
 extension ConfigurationError: LocalizedError {
@@ -41,6 +42,9 @@ extension ConfigurationError: LocalizedError {
 
         case .cannotRemoveLastVault:
             return "cannot remove the last remaining vault."
+
+        case .configurationAlreadyExists:
+            return "configuration already exists."
         }
     }
 }

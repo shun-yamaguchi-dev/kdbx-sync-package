@@ -25,6 +25,10 @@ let package = Package(
                     package: "swift-toml"
                 )
             ]
+        ),
+        .testTarget(
+            name: "KDBXSyncTests",
+            dependencies: ["KDBXSync"]
         )
     ]
 )

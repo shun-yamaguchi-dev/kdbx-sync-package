@@ -34,10 +34,6 @@ struct LaunchAgentManager: LaunchAgentManaging {
         )
     }
 
-    func domain() -> String {
-        launchdDomain
-    }
-
     func install(
         vault: Vault,
         configuration: Configuration,

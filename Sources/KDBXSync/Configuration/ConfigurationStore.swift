@@ -4,6 +4,10 @@ import TOML
 struct ConfigurationStore {
     let configurationURL: URL
 
+    var exists: Bool {
+        FileManager.default.fileExists(atPath: configurationURL.path)
+    }
+
     func loadDecoded() throws -> DecodedConfiguration {
         let toml = try String(
             contentsOf: configurationURL,
@@ -24,20 +28,22 @@ struct ConfigurationStore {
 
         let data = try encoder.encode(configuration)
 
-        let temporaryURL = configurationURL
-            .deletingLastPathComponent()
-            .appendingPathComponent(
-                ".\(configurationURL.lastPathComponent).tmp"
-            )
-
         try data.write(
-            to: temporaryURL,
+            to: configurationURL,
             options: .atomic
         )
+    }
 
-        _ = try FileManager.default.replaceItemAt(
-            configurationURL,
-            withItemAt: temporaryURL
+    func initialize(_ configuration: DecodedConfiguration) throws {
+        guard !exists else {
+            throw ConfigurationError.configurationAlreadyExists
+        }
+
+        try FileManager.default.createDirectory(
+            at: configurationURL.deletingLastPathComponent(),
+            withIntermediateDirectories: true
         )
+
+        try save(configuration)
     }
 }
