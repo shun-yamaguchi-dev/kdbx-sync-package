@@ -1,7 +1,14 @@
 import Foundation
 
+struct LaunchctlResult {
+    let status: Int32
+    let message: String
+}
+
 protocol LaunchctlRunning {
     func run(arguments: [String]) throws
+
+    func inspect(arguments: [String]) throws -> LaunchctlResult
 }
 
 struct LaunchctlExecutor: LaunchctlRunning {
@@ -14,6 +21,27 @@ struct LaunchctlExecutor: LaunchctlRunning {
     }
 
     func run(arguments: [String]) throws {
+        let result = try execute(
+            arguments: arguments
+        )
+
+        guard result.status == 0 else {
+            throw LaunchdError.commandFailed(
+                status: result.status,
+                message: result.message
+            )
+        }
+    }
+
+    func inspect(arguments: [String]) throws -> LaunchctlResult {
+        try execute(
+            arguments: arguments
+        )
+    }
+
+    private func execute(
+        arguments: [String]
+    ) throws -> LaunchctlResult {
         let process = Process()
         process.executableURL = executableURL
         process.arguments = arguments
@@ -26,19 +54,19 @@ struct LaunchctlExecutor: LaunchctlRunning {
         try process.run()
         process.waitUntilExit()
 
-        guard process.terminationStatus == 0 else {
-            let errorOutput = errorPipe.fileHandleForReading.readDataToEndOfFile()
+        let errorOutput = errorPipe.fileHandleForReading
+            .readDataToEndOfFile()
 
-            let message = String(
-                data: errorOutput,
-                encoding: .utf8
-            )?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let message = String(
+            data: errorOutput,
+            encoding: .utf8
+        )?
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? ""
 
-            throw LaunchdError.commandFailed(
-                status: process.terminationStatus,
-                message: message ?? "launchctl failed."
-            )
-        }
+        return LaunchctlResult(
+            status: process.terminationStatus,
+            message: message
+        )
     }
 }

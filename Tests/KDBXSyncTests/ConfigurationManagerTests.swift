@@ -38,11 +38,26 @@ final class ConfigurationManagerTests: XCTestCase {
 
         let configuration = try store.loadDecoded()
 
-        XCTAssertEqual(configuration.global.keepassxc, "/usr/local/bin/keepassxc")
-        XCTAssertEqual(configuration.global.fswatch, "/usr/local/bin/fswatch")
-        XCTAssertEqual(configuration.global.pushDebounce, 2)
-        XCTAssertEqual(configuration.global.pullDebounce, 2)
-        XCTAssertEqual(configuration.global.ignoreWindow, 5)
+        XCTAssertEqual(
+            configuration.global.keepassxc,
+            "/usr/local/bin/keepassxc"
+        )
+        XCTAssertEqual(
+            configuration.global.fswatch,
+            "/usr/local/bin/fswatch"
+        )
+        XCTAssertEqual(
+            configuration.global.pushDebounce,
+            2
+        )
+        XCTAssertEqual(
+            configuration.global.pullDebounce,
+            2
+        )
+        XCTAssertEqual(
+            configuration.global.ignoreWindow,
+            5
+        )
         XCTAssertTrue(configuration.vaults.isEmpty)
     }
 
@@ -77,7 +92,11 @@ final class ConfigurationManagerTests: XCTestCase {
         }
 
         let configuration = try store.loadDecoded()
-        XCTAssertEqual(configuration.global.keepassxc, "/usr/local/bin/keepassxc")
+
+        XCTAssertEqual(
+            configuration.global.keepassxc,
+            "/usr/local/bin/keepassxc"
+        )
     }
 
     func testInitializeRejectsInvalidGlobalConfiguration() {
@@ -130,14 +149,135 @@ final class ConfigurationManagerTests: XCTestCase {
         XCTAssertFalse(store.exists)
     }
 
+    func testEnableSynchronizesBeforeInstallingLaunchAgents() throws {
+        let store = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let synchronizer = RecordingInitialSynchronizer()
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let manager = makeManager(
+            store: store,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: synchronizer
+        )
+
+        try manager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try manager.addVault(
+            name: "personal",
+            localPath: "/vault/local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/vault.key"
+        )
+
+        try manager.setVaultEnabled(
+            name: "personal",
+            enabled: true
+        )
+
+        XCTAssertEqual(
+            synchronizer.events,
+            [.synchronize]
+        )
+
+        XCTAssertEqual(
+            launchAgentManager.events,
+            [.install]
+        )
+
+        let configuration = try store.loadDecoded()
+
+        XCTAssertTrue(
+            configuration.vaults[0].enabled
+        )
+    }
+
+    func testReconcileDelegatesEveryVaultToLaunchAgentManager() throws {
+        let store = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let manager = makeManager(
+            store: store,
+            launchAgentManager: launchAgentManager
+        )
+
+        try manager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try manager.addVault(
+            name: "enabled",
+            localPath: "/vault/enabled-local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/enabled-remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/enabled.key"
+        )
+
+        try manager.addVault(
+            name: "disabled",
+            localPath: "/vault/disabled-local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/disabled-remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/disabled.key"
+        )
+
+        var decoded = try store.loadDecoded()
+
+        decoded.vaults[0].enabled = true
+
+        try store.save(decoded)
+
+        try manager.reconcile()
+
+        XCTAssertEqual(
+            launchAgentManager.reconciliationEvents,
+            [
+                .reconcile(
+                    name: "enabled",
+                    enabled: true
+                ),
+                .reconcile(
+                    name: "disabled",
+                    enabled: false
+                )
+            ]
+        )
+    }
+
     private func makeManager(
-        store: ConfigurationStore
+        store: ConfigurationStore,
+        launchAgentManager: LaunchAgentManaging = UnusedLaunchAgentManager(),
+        initialSynchronizer: InitialSynchronizing = UnusedInitialSynchronizer()
     ) -> ConfigurationManager {
         ConfigurationManager(
             store: store,
             validator: ConfigurationValidator(),
-            launchAgentManager: UnusedLaunchAgentManager(),
-            applicationPaths: ApplicationPaths(bundleURL: temporaryDirectory)
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: initialSynchronizer,
+            applicationPaths: ApplicationPaths(
+                bundleURL: temporaryDirectory
+            )
         )
     }
 }
@@ -148,10 +288,120 @@ private struct UnusedLaunchAgentManager: LaunchAgentManaging {
         configuration: Configuration,
         applicationPaths: ApplicationPaths
     ) throws {
-        XCTFail("LaunchAgentManager should not be used during initialization.")
+        XCTFail(
+            "LaunchAgentManager should not be used during this test."
+        )
     }
 
     func remove(vault: Vault) throws {
-        XCTFail("LaunchAgentManager should not be used during initialization.")
+        XCTFail(
+            "LaunchAgentManager should not be used during this test."
+        )
+    }
+
+    func reconcile(
+        vault: Vault,
+        enabled: Bool,
+        configuration: Configuration,
+        applicationPaths: ApplicationPaths
+    ) throws {
+        XCTFail(
+            "LaunchAgentManager should not be used during this test."
+        )
+    }
+}
+
+private struct UnusedInitialSynchronizer: InitialSynchronizing {
+    func synchronize(
+        vault: Vault
+    ) throws -> InitialSynchronizationResult {
+        XCTFail(
+            "InitialSynchronizer should not be used during this test."
+        )
+
+        return InitialSynchronizationResult(
+            action: .noChange
+        )
+    }
+
+    func rollback(
+        result: InitialSynchronizationResult,
+        vault: Vault
+    ) throws {
+        XCTFail(
+            "InitialSynchronizer should not be used during this test."
+        )
+    }
+}
+
+private final class RecordingInitialSynchronizer: InitialSynchronizing {
+    enum Event: Equatable {
+        case synchronize
+        case rollback
+    }
+
+    private(set) var events: [Event] = []
+
+    func synchronize(
+        vault: Vault
+    ) throws -> InitialSynchronizationResult {
+        events.append(.synchronize)
+
+        return InitialSynchronizationResult(
+            action: .noChange
+        )
+    }
+
+    func rollback(
+        result: InitialSynchronizationResult,
+        vault: Vault
+    ) throws {
+        events.append(.rollback)
+    }
+}
+
+private final class RecordingLaunchAgentManager: LaunchAgentManaging {
+    enum Event: Equatable {
+        case install
+        case remove
+    }
+
+    enum ReconciliationEvent: Equatable {
+        case reconcile(
+            name: String,
+            enabled: Bool
+        )
+    }
+
+    private(set) var events: [Event] = []
+
+    private(set) var reconciliationEvents: [
+        ReconciliationEvent
+    ] = []
+
+    func install(
+        vault: Vault,
+        configuration: Configuration,
+        applicationPaths: ApplicationPaths
+    ) throws {
+        events.append(.install)
+    }
+
+    func remove(vault: Vault) throws {
+        events.append(.remove)
+    }
+
+    func reconcile(
+        vault: Vault,
+        enabled: Bool,
+        configuration: Configuration,
+        applicationPaths: ApplicationPaths
+    ) throws {
+        reconciliationEvents.append(
+            .reconcile(
+                name: vault.name,
+                enabled: enabled
+            )
+        )
     }
 }

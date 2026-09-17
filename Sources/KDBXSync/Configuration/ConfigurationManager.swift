@@ -4,17 +4,20 @@ struct ConfigurationManager {
     let store: ConfigurationStore
     let validator: ConfigurationValidator
     let launchAgentManager: LaunchAgentManaging
+    let initialSynchronizer: InitialSynchronizing
     let applicationPaths: ApplicationPaths
 
     init(
         store: ConfigurationStore,
         validator: ConfigurationValidator,
         launchAgentManager: LaunchAgentManaging,
+        initialSynchronizer: InitialSynchronizing,
         applicationPaths: ApplicationPaths
     ) {
         self.store = store
         self.validator = validator
         self.launchAgentManager = launchAgentManager
+        self.initialSynchronizer = initialSynchronizer
         self.applicationPaths = applicationPaths
     }
 
@@ -22,6 +25,19 @@ struct ConfigurationManager {
         let decoded = try store.loadDecoded()
 
         return try validator.validate(decoded)
+    }
+
+    func reconcile() throws {
+        let configuration = try loadConfiguration()
+
+        for vault in configuration.vaults {
+            try launchAgentManager.reconcile(
+                vault: vault,
+                enabled: vault.enabled,
+                configuration: configuration,
+                applicationPaths: applicationPaths
+            )
+        }
     }
 
     func initializeConfiguration(
@@ -184,11 +200,24 @@ struct ConfigurationManager {
         }
 
         if enabled {
-            try launchAgentManager.install(
-                vault: vault,
-                configuration: configuration,
-                applicationPaths: applicationPaths
+            let synchronizationResult = try initialSynchronizer.synchronize(
+                vault: vault
             )
+
+            do {
+                try launchAgentManager.install(
+                    vault: vault,
+                    configuration: configuration,
+                    applicationPaths: applicationPaths
+                )
+            } catch {
+                try initialSynchronizer.rollback(
+                    result: synchronizationResult,
+                    vault: vault
+                )
+
+                throw error
+            }
         } else {
             try launchAgentManager.remove(
                 vault: vault

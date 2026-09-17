@@ -17,4 +17,23 @@ struct ApplicationPaths {
     func runtimeScript(_ name: String) -> URL {
         runtimeDirectory.appendingPathComponent(name)
     }
+
+    func validateRuntime() throws {
+        let requiredScripts = [
+            "kdbx-push-runner.sh",
+            "kdbx-push.sh",
+            "kdbx-pull-runner.sh",
+            "kdbx-pull.sh"
+        ]
+
+        for script in requiredScripts {
+            let url = runtimeScript(script)
+
+            guard FileManager.default.isExecutableFile(
+                atPath: url.path
+            ) else {
+                throw ApplicationError.runtimeResourceMissing(url)
+            }
+        }
+    }
 }

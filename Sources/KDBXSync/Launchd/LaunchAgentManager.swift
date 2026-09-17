@@ -34,6 +34,77 @@ struct LaunchAgentManager: LaunchAgentManaging {
         )
     }
 
+    func isLoaded(label: String) throws -> Bool {
+        let result = try launchctl.inspect(
+            arguments: [
+                "print",
+                "\(launchdDomain)/\(label)"
+            ]
+        )
+
+        switch result.status {
+        case 0:
+            return true
+
+        case 113:
+            return false
+
+        default:
+            throw LaunchdError.commandFailed(
+                status: result.status,
+                message: result.message
+            )
+        }
+    }
+
+    func reconcile(
+        vault: Vault,
+        enabled: Bool,
+        configuration: Configuration,
+        applicationPaths: ApplicationPaths
+    ) throws {
+        let pushLabel = "com.kdbx.push.\(vault.id.uuidString)"
+        let pullLabel = "com.kdbx.pull.\(vault.id.uuidString)"
+
+        let pushLoaded = try isLoaded(
+            label: pushLabel
+        )
+
+        let pullLoaded = try isLoaded(
+            label: pullLabel
+        )
+
+        if enabled {
+            if !pushLoaded {
+                try installPush(
+                    vault: vault,
+                    configuration: configuration,
+                    applicationPaths: applicationPaths
+                )
+            }
+
+            if !pullLoaded {
+                try installPull(
+                    vault: vault,
+                    configuration: configuration,
+                    applicationPaths: applicationPaths
+                )
+            }
+        } else {
+            if pushLoaded {
+                try bootout(
+                    label: pushLabel
+                )
+            }
+
+            if pullLoaded {
+                try bootout(
+                    label: pullLabel
+                )
+            }
+        }
+    }
+
     func install(
         vault: Vault,
         configuration: Configuration,
@@ -123,6 +194,11 @@ struct LaunchAgentManager: LaunchAgentManaging {
         configuration: Configuration,
         applicationPaths: ApplicationPaths
     ) throws {
+        try FileManager.default.createDirectory(
+            at: launchAgentsDirectory,
+            withIntermediateDirectories: true
+        )
+
         let generator = LaunchAgentGenerator()
 
         let data = try generator.generatePush(
@@ -152,6 +228,11 @@ struct LaunchAgentManager: LaunchAgentManaging {
         configuration: Configuration,
         applicationPaths: ApplicationPaths
     ) throws {
+        try FileManager.default.createDirectory(
+            at: launchAgentsDirectory,
+            withIntermediateDirectories: true
+        )
+
         let generator = LaunchAgentGenerator()
 
         let data = try generator.generatePull(

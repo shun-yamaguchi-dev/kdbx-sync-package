@@ -10,4 +10,11 @@ protocol LaunchAgentManaging {
     func remove(
         vault: Vault
     ) throws
+
+    func reconcile(
+        vault: Vault,
+        enabled: Bool,
+        configuration: Configuration,
+        applicationPaths: ApplicationPaths
+    ) throws
 }
