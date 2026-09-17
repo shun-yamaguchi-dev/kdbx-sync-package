@@ -141,6 +141,59 @@ struct ApplicationTests {
         }
     }
 
+    @Test
+    func reconcileUsesInstalledApplicationBundleRuntime() throws {
+        let temporaryDirectory = try makeTemporaryDirectory()
+
+        defer {
+            try? FileManager.default.removeItem(
+                at: temporaryDirectory
+            )
+        }
+
+        let configurationURL = temporaryDirectory
+            .appendingPathComponent("config.toml")
+
+        let store = ConfigurationStore(
+            configurationURL: configurationURL
+        )
+
+        let configuration = DecodedConfiguration(
+            global: DecodedGlobalConfiguration(
+                keepassxc: "/usr/bin/true",
+                fswatch: "/usr/bin/true",
+                pushDebounce: 2,
+                pullDebounce: 2,
+                ignoreWindow: 5
+            ),
+            vaults: [
+                makeDecodedVault()
+            ]
+        )
+
+        try store.initialize(configuration)
+
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let application = Application(
+            configurationURL: configurationURL,
+            applicationBundleURL: URL(
+                fileURLWithPath:
+                    "\(NSHomeDirectory())/Applications/KDBX Sync.app"
+            ),
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: UnusedInitialSynchronizer()
+        )
+
+        try application.run(
+            arguments: ["--reconcile"]
+        )
+
+        #expect(
+            launchAgentManager.reconciliationEvents.count == 1
+        )
+    }
+
     private func makeDecodedVault() -> DecodedVault {
         DecodedVault(
             id: UUID(),

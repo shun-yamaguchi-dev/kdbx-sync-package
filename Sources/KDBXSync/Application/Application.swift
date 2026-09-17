@@ -8,15 +8,15 @@ struct Application {
     init(
         configurationURL: URL = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".config/kdbx-sync/config.toml"),
-        applicationBundleURL: URL = Bundle.main.bundleURL
+        applicationBundleURL: URL = Bundle.main.bundleURL,
+        launchAgentManager: LaunchAgentManaging = LaunchAgentManager(),
+        initialSynchronizer: InitialSynchronizing = InitialSynchronizer()
     ) {
         let store = ConfigurationStore(
             configurationURL: configurationURL
         )
 
         let validator = ConfigurationValidator()
-        let launchAgentManager = LaunchAgentManager()
-        let initialSynchronizer = InitialSynchronizer()
 
         let paths = ApplicationPaths(
             bundleURL: applicationBundleURL
