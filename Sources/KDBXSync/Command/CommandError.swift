@@ -1,6 +1,6 @@
 import Foundation
 
-enum CommandError: Error {
+enum CommandError: Error, Equatable {
     case invalidArguments
     case unknownCommand(String)
 }
@@ -13,6 +13,6 @@ extension CommandError: LocalizedError {
 
         case .unknownCommand(let command):
             return "unknown command: '\(command)'."
-       }
+        }
     }
 }

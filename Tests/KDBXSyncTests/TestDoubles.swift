@@ -109,3 +109,24 @@ struct UnusedInitialSynchronizer: InitialSynchronizing {
         fatalError("Initial synchronizer should not be called.")
     }
 }
+
+final class RecordingLoginItemManager: LoginItemManaging {
+    var currentStatus: LoginItemStatus = .notRegistered
+
+    var registerCount = 0
+    var unregisterCount = 0
+
+    var status: LoginItemStatus {
+        currentStatus
+    }
+
+    func register() throws {
+        registerCount += 1
+        currentStatus = .enabled
+    }
+
+    func unregister() throws {
+        unregisterCount += 1
+        currentStatus = .notRegistered
+    }
+}

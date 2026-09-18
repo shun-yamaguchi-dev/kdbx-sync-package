@@ -1,14 +1,14 @@
 import Foundation
 
 struct ConfigurationManager {
-    let store: ConfigurationStore
+    let store: ConfigurationStoring
     let validator: ConfigurationValidator
     let launchAgentManager: LaunchAgentManaging
     let initialSynchronizer: InitialSynchronizing
     let applicationPaths: ApplicationPaths
 
     init(
-        store: ConfigurationStore,
+        store: ConfigurationStoring,
         validator: ConfigurationValidator,
         launchAgentManager: LaunchAgentManaging,
         initialSynchronizer: InitialSynchronizing,
@@ -58,7 +58,10 @@ struct ConfigurationManager {
         _ = try validator.validateGlobal(global)
 
         try store.initialize(
-            DecodedConfiguration(global: global, vaults: [])
+            DecodedConfiguration(
+                global: global,
+                vaults: []
+            )
         )
     }
 
@@ -189,6 +192,8 @@ struct ConfigurationManager {
             return
         }
 
+        let previousEnabled = decoded.vaults[vaultIndex].enabled
+
         decoded.vaults[vaultIndex].enabled = enabled
 
         let configuration = try validator.validate(decoded)
@@ -211,19 +216,83 @@ struct ConfigurationManager {
                     applicationPaths: applicationPaths
                 )
             } catch {
-                try initialSynchronizer.rollback(
-                    result: synchronizationResult,
-                    vault: vault
-                )
+                let installationError = error
 
-                throw error
+                do {
+                    try initialSynchronizer.rollback(
+                        result: synchronizationResult,
+                        vault: vault
+                    )
+                } catch {
+                    throw ConfigurationError.rollbackFailed(
+                        originalError: installationError,
+                        rollbackError: error
+                    )
+                }
+
+                throw installationError
             }
-        } else {
-            try launchAgentManager.remove(
-                vault: vault
-            )
+
+            do {
+                try store.save(decoded)
+            } catch {
+                let saveError = error
+
+                do {
+                    try launchAgentManager.remove(
+                        vault: vault
+                    )
+
+                    try initialSynchronizer.rollback(
+                        result: synchronizationResult,
+                        vault: vault
+                    )
+                } catch {
+                    throw ConfigurationError.rollbackFailed(
+                        originalError: saveError,
+                        rollbackError: error
+                    )
+                }
+
+                throw saveError
+            }
+
+            return
         }
 
-        try store.save(decoded)
+        try launchAgentManager.remove(
+            vault: vault
+        )
+
+        do {
+            try store.save(decoded)
+        } catch {
+            let saveError = error
+
+            decoded.vaults[vaultIndex].enabled = previousEnabled
+
+            do {
+                let previousConfiguration = try validator.validate(decoded)
+
+                guard let previousVault = previousConfiguration.vaults.first(
+                    where: { $0.id == vault.id }
+                ) else {
+                    throw ConfigurationError.vaultNotFound(name)
+                }
+
+                try launchAgentManager.install(
+                    vault: previousVault,
+                    configuration: previousConfiguration,
+                    applicationPaths: applicationPaths
+                )
+            } catch {
+                throw ConfigurationError.rollbackFailed(
+                    originalError: saveError,
+                    rollbackError: error
+                )
+            }
+
+            throw saveError
+        }
     }
 }

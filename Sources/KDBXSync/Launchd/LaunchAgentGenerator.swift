@@ -1,6 +1,15 @@
 import Foundation
 
 struct LaunchAgentGenerator {
+    let stateDirectory: URL
+
+    init(
+        stateDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".local/state/kdbx-sync")
+    ) {
+        self.stateDirectory = stateDirectory
+    }
+
     func generatePush(
         vault: Vault,
         configuration: Configuration,
@@ -95,8 +104,7 @@ struct LaunchAgentGenerator {
     }
 
     private func stateDirectory(for vault: Vault) -> URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".local/state/kdbx-sync")
+        stateDirectory
             .appendingPathComponent(vault.id.uuidString)
     }
 }

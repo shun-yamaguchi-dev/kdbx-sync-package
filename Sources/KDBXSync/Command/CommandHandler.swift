@@ -2,6 +2,15 @@ import Foundation
 
 struct CommandHandler {
     let manager: ConfigurationManager
+    let loginItemManager: LoginItemManaging
+
+    init(
+        manager: ConfigurationManager,
+        loginItemManager: LoginItemManaging
+    ) {
+        self.manager = manager
+        self.loginItemManager = loginItemManager
+    }
 
     func execute(arguments: ArraySlice<String>) throws {
         guard let resource = arguments.first else {
@@ -16,6 +25,11 @@ struct CommandHandler {
 
         case "vault":
             try executeVaultCommand(
+                arguments: arguments.dropFirst()
+            )
+
+        case "login-item":
+            try executeLoginItemCommand(
                 arguments: arguments.dropFirst()
             )
 
@@ -50,8 +64,12 @@ struct CommandHandler {
         }
 
         guard
-            let keepassxc = options.removeValue(forKey: "--keepassxc"),
-            let fswatch = options.removeValue(forKey: "--fswatch")
+            let keepassxc = options.removeValue(
+                forKey: "--keepassxc"
+            ),
+            let fswatch = options.removeValue(
+                forKey: "--fswatch"
+            )
         else {
             throw CommandError.invalidArguments
         }
@@ -61,11 +79,13 @@ struct CommandHandler {
             from: &options,
             defaultValue: 2
         )
+
         let pullDebounce = try integerOption(
             "--pull-debounce",
             from: &options,
             defaultValue: 2
         )
+
         let ignoreWindow = try integerOption(
             "--ignore-window",
             from: &options,
@@ -84,7 +104,9 @@ struct CommandHandler {
             ignoreWindow: ignoreWindow
         )
 
-        print("Created configuration. Add a vault with 'kdbx-sync vault add'.")
+        print(
+            "Created configuration. Add a vault with 'kdbx-sync vault add'."
+        )
     }
 
     private func integerOption(
@@ -113,8 +135,8 @@ struct CommandHandler {
         switch action {
         case "add":
             try addVault(
-            arguments: arguments.dropFirst()
-        )
+                arguments: arguments.dropFirst()
+            )
 
         case "list":
             try listVaults(
@@ -122,20 +144,20 @@ struct CommandHandler {
             )
 
         case "show":
-        try showVault(
-            arguments: arguments.dropFirst()
-        )
+            try showVault(
+                arguments: arguments.dropFirst()
+            )
 
         case "rename":
             try renameVault(
                 arguments: arguments.dropFirst()
-            )   
-        
+            )
+
         case "remove":
             try removeVault(
                 arguments: arguments.dropFirst()
             )
-        
+
         case "enable":
             try setVaultEnabled(
                 arguments: arguments.dropFirst(),
@@ -152,6 +174,52 @@ struct CommandHandler {
             throw CommandError.unknownCommand(
                 "vault \(action)"
             )
+        }
+    }
+
+    private func executeLoginItemCommand(
+        arguments: ArraySlice<String>
+    ) throws {
+        guard let action = arguments.first else {
+            throw CommandError.invalidArguments
+        }
+
+        guard arguments.count == 1 else {
+            throw CommandError.invalidArguments
+        }
+
+        switch action {
+        case "status":
+            printLoginItemStatus()
+
+        case "enable":
+            try loginItemManager.register()
+            print("Enabled KDBX Sync as a Login Item.")
+
+        case "disable":
+            try loginItemManager.unregister()
+            print("Disabled KDBX Sync as a Login Item.")
+
+        default:
+            throw CommandError.unknownCommand(
+                "login-item \(action)"
+            )
+        }
+    }
+
+    private func printLoginItemStatus() {
+        switch loginItemManager.status {
+        case .notRegistered:
+            print("Not registered.")
+
+        case .enabled:
+            print("Enabled.")
+
+        case .requiresApproval:
+            print("Requires approval.")
+
+        case .notFound:
+            print("Not found.")
         }
     }
 
@@ -186,12 +254,12 @@ struct CommandHandler {
             }
 
             guard options[option] == nil else {
-            throw CommandError.invalidArguments
+                throw CommandError.invalidArguments
             }
 
             options[option] = value
         }
-        
+
         guard
             let localPath = options["--local-path"],
             let localWatchPath = options["--local-watch-path"],
@@ -258,8 +326,8 @@ struct CommandHandler {
         print("Status:             \(status)")
         print("Local path:         \(vault.localPath.path)")
         print("Local watch path:   \(vault.localWatchPath.path)")
-        print("remote path:         \(vault.remotePath.path)")
-        print("remote watch path:   \(vault.remoteWatchPath.path)")
+        print("Remote path:        \(vault.remotePath.path)")
+        print("Remote watch path:  \(vault.remoteWatchPath.path)")
         print("Keyfile path:       \(vault.keyfilePath.path)")
     }
 
@@ -271,6 +339,7 @@ struct CommandHandler {
         }
 
         let oldName = arguments[arguments.startIndex]
+
         let newName = arguments[
             arguments.index(after: arguments.startIndex)
         ]
@@ -280,26 +349,28 @@ struct CommandHandler {
             newName: newName
         )
 
-        print("Renamed vault '\(oldName)' to '\(newName)'.")
+        print(
+            "Renamed vault '\(oldName)' to '\(newName)'."
+        )
     }
 
     private func removeVault(
         arguments: ArraySlice<String>
-        ) throws {
-            guard arguments.count == 1 else {
-                throw CommandError.invalidArguments
-            }
-
-            let name = arguments[arguments.startIndex]
-
-            try manager.removeVault(
-                name: name
-            )
-
-            print("Removed vault '\(name)'.")
+    ) throws {
+        guard arguments.count == 1 else {
+            throw CommandError.invalidArguments
         }
 
-        private func setVaultEnabled(
+        let name = arguments[arguments.startIndex]
+
+        try manager.removeVault(
+            name: name
+        )
+
+        print("Removed vault '\(name)'.")
+    }
+
+    private func setVaultEnabled(
         arguments: ArraySlice<String>,
         enabled: Bool
     ) throws {
@@ -313,7 +384,7 @@ struct CommandHandler {
             name: name,
             enabled: enabled
         )
- 
+
         let action = enabled ? "Enabled" : "Disabled"
 
         print("\(action) vault '\(name)'.")

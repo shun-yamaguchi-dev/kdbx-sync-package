@@ -1,7 +1,7 @@
 import Foundation
 import TOML
 
-struct ConfigurationStore {
+struct ConfigurationStore: ConfigurationStoring {
     let configurationURL: URL
 
     var exists: Bool {

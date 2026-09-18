@@ -11,6 +11,11 @@ enum ConfigurationError: Error {
     case vaultNameAlreadyExists(String)
     case cannotRemoveLastVault
     case configurationAlreadyExists
+
+    case rollbackFailed(
+        originalError: Error,
+        rollbackError: Error
+    )
 }
 
 extension ConfigurationError: LocalizedError {
@@ -45,6 +50,15 @@ extension ConfigurationError: LocalizedError {
 
         case .configurationAlreadyExists:
             return "configuration already exists."
+
+        case let .rollbackFailed(
+            originalError,
+            rollbackError
+        ):
+            return """
+            Operation failed: \(originalError.localizedDescription)
+            Rollback also failed: \(rollbackError.localizedDescription)
+            """
         }
     }
 }

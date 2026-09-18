@@ -253,6 +253,238 @@ final class ConfigurationManagerTests: XCTestCase {
         )
     }
 
+    func testEnableRollsBackWhenSavingConfigurationFails() throws {
+        let underlyingStore = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let failingStore = FailingConfigurationStore(
+            underlying: underlyingStore
+        )
+
+        let synchronizer = RecordingInitialSynchronizer()
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let setupManager = makeManager(
+            store: underlyingStore,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: synchronizer
+        )
+
+        try setupManager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try setupManager.addVault(
+            name: "personal",
+            localPath: "/vault/local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/vault.key"
+        )
+
+        let manager = makeManager(
+            store: failingStore,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: synchronizer
+        )
+
+        XCTAssertThrowsError(
+            try manager.setVaultEnabled(
+                name: "personal",
+                enabled: true
+            )
+        ) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "configuration save failed."
+            )
+        }
+
+        XCTAssertEqual(
+            synchronizer.events,
+            [
+                .synchronize,
+                .rollback
+            ]
+        )
+
+        XCTAssertEqual(
+            launchAgentManager.events,
+            [
+                .install,
+                .remove
+            ]
+        )
+
+        let configuration = try underlyingStore.loadDecoded()
+
+        XCTAssertFalse(
+            configuration.vaults[0].enabled
+        )
+    }
+
+    func testEnableReportsRollbackFailureWhenSavingConfigurationFails() throws {
+        let underlyingStore = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let failingStore = FailingConfigurationStore(
+            underlying: underlyingStore
+        )
+
+        let synchronizer = FailingRollbackSynchronizer()
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let setupManager = makeManager(
+            store: underlyingStore,
+            launchAgentManager: launchAgentManager
+        )
+
+        try setupManager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try setupManager.addVault(
+            name: "personal",
+            localPath: "/vault/local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/vault.key"
+        )
+
+        let manager = makeManager(
+            store: failingStore,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: synchronizer
+        )
+
+        XCTAssertThrowsError(
+            try manager.setVaultEnabled(
+                name: "personal",
+                enabled: true
+            )
+        ) { error in
+            guard case let ConfigurationError.rollbackFailed(
+                originalError,
+                rollbackError
+            ) = error else {
+                XCTFail(
+                    "Expected ConfigurationError.rollbackFailed, got \(error)"
+                )
+                return
+            }
+
+            XCTAssertEqual(
+                originalError.localizedDescription,
+                "configuration save failed."
+            )
+
+            XCTAssertEqual(
+                rollbackError.localizedDescription,
+                "synchronization rollback failed."
+            )
+        }
+
+        XCTAssertEqual(
+            launchAgentManager.events,
+            [
+                .install,
+                .remove
+            ]
+        )
+
+        let configuration = try underlyingStore.loadDecoded()
+
+        XCTAssertFalse(
+            configuration.vaults[0].enabled
+        )
+    }
+
+    func testDisableRollsBackWhenSavingConfigurationFails() throws {
+        let underlyingStore = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let failingStore = FailingConfigurationStore(
+            underlying: underlyingStore
+        )
+
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let setupManager = makeManager(
+            store: underlyingStore,
+            launchAgentManager: launchAgentManager
+        )
+
+        try setupManager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try setupManager.addVault(
+            name: "personal",
+            localPath: "/vault/local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/vault.key"
+        )
+
+        var decoded = try underlyingStore.loadDecoded()
+
+        decoded.vaults[0].enabled = true
+
+        try underlyingStore.save(decoded)
+
+        let manager = makeManager(
+            store: failingStore,
+            launchAgentManager: launchAgentManager
+        )
+
+        XCTAssertThrowsError(
+            try manager.setVaultEnabled(
+                name: "personal",
+                enabled: false
+            )
+        ) { error in
+            XCTAssertEqual(
+                error.localizedDescription,
+                "configuration save failed."
+            )
+        }
+
+        XCTAssertEqual(
+            launchAgentManager.events,
+            [
+                .remove,
+                .install
+            ]
+        )
+
+        let configuration = try underlyingStore.loadDecoded()
+
+        XCTAssertTrue(
+            configuration.vaults[0].enabled
+        )
+    }
+
     func testReconcileDelegatesEveryVaultToLaunchAgentManager() throws {
         let store = ConfigurationStore(
             configurationURL: temporaryDirectory
@@ -293,7 +525,9 @@ final class ConfigurationManagerTests: XCTestCase {
         )
 
         var decoded = try store.loadDecoded()
+
         decoded.vaults[0].enabled = true
+
         try store.save(decoded)
 
         try manager.reconcile()
@@ -314,7 +548,7 @@ final class ConfigurationManagerTests: XCTestCase {
     }
 
     private func makeManager(
-        store: ConfigurationStore,
+        store: ConfigurationStoring,
         launchAgentManager: LaunchAgentManaging = UnusedLaunchAgentManager(),
         initialSynchronizer: InitialSynchronizing = UnusedInitialSynchronizer()
     ) -> ConfigurationManager {
@@ -347,6 +581,70 @@ private struct FailingInitialSynchronizer: InitialSynchronizing {
     }
 }
 
-private enum TestSynchronizationError: Error {
+private struct FailingRollbackSynchronizer: InitialSynchronizing {
+    func synchronize(
+        vault: Vault
+    ) throws -> InitialSynchronizationResult {
+        return InitialSynchronizationResult(
+            action: .noChange
+        )
+    }
+
+    func rollback(
+        result: InitialSynchronizationResult,
+        vault: Vault
+    ) throws {
+        throw TestSynchronizationError.rollbackFailed
+    }
+}
+
+private enum TestSynchronizationError: Error, LocalizedError {
     case failed
+    case rollbackFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .failed:
+            return "initial synchronization failed."
+
+        case .rollbackFailed:
+            return "synchronization rollback failed."
+        }
+    }
+}
+
+private final class FailingConfigurationStore: ConfigurationStoring {
+    let underlying: ConfigurationStore
+
+    init(underlying: ConfigurationStore) {
+        self.underlying = underlying
+    }
+
+    var exists: Bool {
+        underlying.exists
+    }
+
+    func loadDecoded() throws -> DecodedConfiguration {
+        try underlying.loadDecoded()
+    }
+
+    func save(
+        _ configuration: DecodedConfiguration
+    ) throws {
+        throw TestConfigurationStoreError.saveFailed
+    }
+
+    func initialize(
+        _ configuration: DecodedConfiguration
+    ) throws {
+        try underlying.initialize(configuration)
+    }
+}
+
+private enum TestConfigurationStoreError: Error, LocalizedError {
+    case saveFailed
+
+    var errorDescription: String? {
+        "configuration save failed."
+    }
 }

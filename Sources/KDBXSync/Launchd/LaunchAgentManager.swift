@@ -3,14 +3,18 @@ import Foundation
 struct LaunchAgentManager: LaunchAgentManaging {
     private let launchAgentsDirectory: URL
     private let launchctl: LaunchctlRunning
+    private let stateDirectory: URL
 
     init(
         launchAgentsDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/LaunchAgents"),
-        launchctl: LaunchctlRunning = LaunchctlExecutor()
+        launchctl: LaunchctlRunning = LaunchctlExecutor(),
+        stateDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".local/state/kdbx-sync")
     ) {
         self.launchAgentsDirectory = launchAgentsDirectory
         self.launchctl = launchctl
+        self.stateDirectory = stateDirectory
     }
 
     private var launchdDomain: String {
@@ -102,6 +106,14 @@ struct LaunchAgentManager: LaunchAgentManaging {
                     label: pullLabel
                 )
             }
+
+            try removePlist(
+                at: pushPlistURL(for: vault)
+            )
+
+            try removePlist(
+                at: pullPlistURL(for: vault)
+            )
         }
     }
 
@@ -199,7 +211,9 @@ struct LaunchAgentManager: LaunchAgentManaging {
             withIntermediateDirectories: true
         )
 
-        let generator = LaunchAgentGenerator()
+        let generator = LaunchAgentGenerator(
+            stateDirectory: stateDirectory
+        )
 
         let data = try generator.generatePush(
             vault: vault,
@@ -233,7 +247,9 @@ struct LaunchAgentManager: LaunchAgentManaging {
             withIntermediateDirectories: true
         )
 
-        let generator = LaunchAgentGenerator()
+        let generator = LaunchAgentGenerator(
+            stateDirectory: stateDirectory
+        )
 
         let data = try generator.generatePull(
             vault: vault,

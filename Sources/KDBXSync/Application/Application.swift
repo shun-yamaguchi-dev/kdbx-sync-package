@@ -6,14 +6,14 @@ struct Application {
     let applicationPaths: ApplicationPaths
 
     init(
-        configurationURL: URL = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/kdbx-sync/config.toml"),
+        environment: ApplicationEnvironment = .production,
         applicationBundleURL: URL = Bundle.main.bundleURL,
-        launchAgentManager: LaunchAgentManaging = LaunchAgentManager(),
-        initialSynchronizer: InitialSynchronizing = InitialSynchronizer()
+        launchAgentManager: LaunchAgentManaging? = nil,
+        initialSynchronizer: InitialSynchronizing = InitialSynchronizer(),
+        loginItemManager: LoginItemManaging? = nil
     ) {
         let store = ConfigurationStore(
-            configurationURL: configurationURL
+            configurationURL: environment.configurationURL
         )
 
         let validator = ConfigurationValidator()
@@ -22,19 +22,59 @@ struct Application {
             bundleURL: applicationBundleURL
         )
 
+        let resolvedLaunchAgentManager =
+            launchAgentManager
+            ?? LaunchAgentManager(
+                launchAgentsDirectory: environment.launchAgentsDirectory,
+                stateDirectory: environment.stateDirectory
+            )
+
         let manager = ConfigurationManager(
             store: store,
             validator: validator,
-            launchAgentManager: launchAgentManager,
+            launchAgentManager: resolvedLaunchAgentManager,
             initialSynchronizer: initialSynchronizer,
             applicationPaths: paths
         )
+
+        let resolvedLoginItemManager =
+            loginItemManager
+            ?? SMAppLoginItemManager()
 
         configurationManager = manager
         applicationPaths = paths
 
         commandHandler = CommandHandler(
-            manager: manager
+            manager: manager,
+            loginItemManager: resolvedLoginItemManager
+        )
+    }
+
+    init(
+        configurationURL: URL,
+        applicationBundleURL: URL = Bundle.main.bundleURL,
+        launchAgentManager: LaunchAgentManaging? = nil,
+        initialSynchronizer: InitialSynchronizing = InitialSynchronizer(),
+        loginItemManager: LoginItemManaging? = nil
+    ) {
+        self.init(
+            environment: ApplicationEnvironment(
+                configurationURL: configurationURL,
+                launchAgentsDirectory: FileManager.default
+                    .homeDirectoryForCurrentUser
+                    .appendingPathComponent(
+                        "Library/LaunchAgents"
+                    ),
+                stateDirectory: FileManager.default
+                    .homeDirectoryForCurrentUser
+                    .appendingPathComponent(
+                        ".local/state/kdbx-sync"
+                    )
+            ),
+            applicationBundleURL: applicationBundleURL,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: initialSynchronizer,
+            loginItemManager: loginItemManager
         )
     }
 
@@ -52,6 +92,10 @@ struct Application {
         try commandHandler.execute(
             arguments: arguments
         )
+    }
+
+    func runStartup() throws {
+        try reconcile()
     }
 
     private func reconcile() throws {
