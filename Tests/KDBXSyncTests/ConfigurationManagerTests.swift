@@ -203,6 +203,56 @@ final class ConfigurationManagerTests: XCTestCase {
         )
     }
 
+    func testEnableDoesNotInstallLaunchAgentsWhenInitialSynchronizationFails() throws {
+        let store = ConfigurationStore(
+            configurationURL: temporaryDirectory
+                .appendingPathComponent("config.toml")
+        )
+
+        let synchronizer = FailingInitialSynchronizer()
+        let launchAgentManager = RecordingLaunchAgentManager()
+
+        let manager = makeManager(
+            store: store,
+            launchAgentManager: launchAgentManager,
+            initialSynchronizer: synchronizer
+        )
+
+        try manager.initializeConfiguration(
+            keepassxc: "/usr/local/bin/keepassxc",
+            fswatch: "/usr/local/bin/fswatch",
+            pushDebounce: 2,
+            pullDebounce: 2,
+            ignoreWindow: 5
+        )
+
+        try manager.addVault(
+            name: "personal",
+            localPath: "/vault/local.kdbx",
+            localWatchPath: "/vault",
+            remotePath: "/remote/remote.kdbx",
+            remoteWatchPath: "/remote",
+            keyfilePath: "/keys/vault.key"
+        )
+
+        XCTAssertThrowsError(
+            try manager.setVaultEnabled(
+                name: "personal",
+                enabled: true
+            )
+        )
+
+        XCTAssertTrue(
+            launchAgentManager.events.isEmpty
+        )
+
+        let configuration = try store.loadDecoded()
+
+        XCTAssertFalse(
+            configuration.vaults[0].enabled
+        )
+    }
+
     func testReconcileDelegatesEveryVaultToLaunchAgentManager() throws {
         let store = ConfigurationStore(
             configurationURL: temporaryDirectory
@@ -243,9 +293,7 @@ final class ConfigurationManagerTests: XCTestCase {
         )
 
         var decoded = try store.loadDecoded()
-
         decoded.vaults[0].enabled = true
-
         try store.save(decoded)
 
         try manager.reconcile()
@@ -280,4 +328,25 @@ final class ConfigurationManagerTests: XCTestCase {
             )
         )
     }
+}
+
+private struct FailingInitialSynchronizer: InitialSynchronizing {
+    func synchronize(
+        vault: Vault
+    ) throws -> InitialSynchronizationResult {
+        throw TestSynchronizationError.failed
+    }
+
+    func rollback(
+        result: InitialSynchronizationResult,
+        vault: Vault
+    ) throws {
+        XCTFail(
+            "Rollback should not be called when synchronization fails."
+        )
+    }
+}
+
+private enum TestSynchronizationError: Error {
+    case failed
 }
