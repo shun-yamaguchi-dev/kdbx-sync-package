@@ -9,3 +9,6 @@
 # build artifacts
 /build/
 /.build/
+
+# archive
+archive/
