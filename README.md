@@ -44,7 +44,7 @@ KDBX Sync bundles its synchronization runtime inside the application. KeePassXC 
 
 From the repository root:
 
-```bash
+```shell
 ./scripts/install.sh
 ```
 
@@ -65,7 +65,7 @@ The application bundle contains the synchronization runtime, so the installed La
 
 Create the global configuration once. Supply absolute paths to the KeePassXC executable and `fswatch`:
 
-```bash
+```shell
 kdbx-sync init \
   --keepassxc /Applications/KeePassXC.app/Contents/MacOS/keepassxc \
   --fswatch /opt/homebrew/bin/fswatch
@@ -73,7 +73,7 @@ kdbx-sync init \
 
 Optional timings are specified in seconds:
 
-```bash
+```shell
 kdbx-sync init \
   --keepassxc /absolute/path/to/keepassxc \
   --fswatch /absolute/path/to/fswatch \
@@ -102,7 +102,7 @@ It will not overwrite an existing configuration.
 
 Add a vault by providing its local database, remote database, watch directories, and key file:
 
-```bash
+```shell
 kdbx-sync vault add personal \
   --local-path /absolute/path/to/local.kdbx \
   --local-watch-path /absolute/path/to/local-directory \
@@ -117,7 +117,7 @@ New vaults are disabled initially.
 
 Once the paths are correct:
 
-```bash
+```shell
 kdbx-sync vault enable personal
 ```
 
@@ -129,31 +129,31 @@ If both database files already exist and contain different contents, KDBX Sync r
 
 List configured vaults:
 
-```bash
+```shell
 kdbx-sync vault list
 ```
 
 Show a vault's configuration:
 
-```bash
+```shell
 kdbx-sync vault show NAME
 ```
 
 Rename a vault:
 
-```bash
+```shell
 kdbx-sync vault rename OLD_NAME NEW_NAME
 ```
 
 Disable a vault:
 
-```bash
+```shell
 kdbx-sync vault disable NAME
 ```
 
 Remove a vault:
 
-```bash
+```shell
 kdbx-sync vault remove NAME
 ```
 
@@ -165,19 +165,19 @@ For each enabled vault, push and pull are managed as separate LaunchAgents.
 
 KDBX Sync can register the application itself as a macOS Login Item:
 
-```bash
+```shell
 kdbx-sync login-item enable
 ```
 
 Check its status:
 
-```bash
+```shell
 kdbx-sync login-item status
 ```
 
 Disable it:
 
-```bash
+```shell
 kdbx-sync login-item disable
 ```
 
@@ -250,7 +250,7 @@ The database files and key files are **not** stored inside KDBX Sync. Their loca
 
 To update an existing installation, run:
 
-```bash
+```shell
 ./scripts/install.sh
 ```
 
@@ -262,36 +262,36 @@ Existing configuration, Login Item registration, and LaunchAgent state are kept 
 
 Check whether the Login Item is enabled:
 
-```bash
+```shell
 kdbx-sync login-item status
 ```
 
 Check configured vaults:
 
-```bash
+```shell
 kdbx-sync vault list
 ```
 
 Inspect a vault:
 
-```bash
+```shell
 kdbx-sync vault show NAME
 ```
 
 Inspect the generated LaunchAgents:
 
-```bash
+```shell
 ls ~/Library/LaunchAgents/com.kdbx.*.plist
 ```
 
 Inspect synchronization state and logs:
 
-```bash
+```shell
 ls ~/.local/state/kdbx-sync/
 ```
 
 If a vault is not supposed to synchronize, disable it:
 
-```bash
+```shell
 kdbx-sync vault disable NAME
 ```
