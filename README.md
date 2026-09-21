@@ -8,7 +8,7 @@ KDBX Sync is designed for a simple workflow: **keep working with KeePass normall
 
 A typical setup has two copies of the same KeePass database:
 
-```text
+```
 Your Mac
 └── Local KeePass database
           ↕
@@ -50,7 +50,7 @@ From the repository root:
 
 This installs:
 
-```text
+```
 ~/Applications/KDBX Sync.app
 ~/.local/bin/kdbx-sync
 ```
@@ -84,7 +84,7 @@ kdbx-sync init \
 
 The defaults are:
 
-```text
+```
 push_debounce = 2
 pull_debounce = 2
 ignore_window = 5
@@ -92,7 +92,7 @@ ignore_window = 5
 
 The command creates:
 
-```text
+```
 ~/.config/kdbx-sync/config.toml
 ```
 
@@ -191,7 +191,7 @@ Starting KDBX Sync at login does **not** perform an initial database synchroniza
 
 KDBX Sync consists of a macOS application and two independent synchronization workflows for each enabled vault:
 
-```text
+```
 macOS Login
     │
     ▼
@@ -221,13 +221,13 @@ Push operation   Pull operation
 
 Push and pull remain separate workflows so that a change on one side does not require a single monolithic synchronization process.
 
-The application manages the lifecycle of the LaunchAgents, while the bundled runtime performs the actual filesystem watching, debouncing, and KeePassXC merge operations.
+The applicatio manage the lifecycle of the LaunchAgents, while the bundled runtime performs the actual filesystem watching, debouncing, and KeePassXC merge operations.
 
 ## Files and directories
 
 KDBX Sync uses the following locations:
 
-```text
+```
 ~/Applications/KDBX Sync.app
     Installed application and bundled runtime
 
