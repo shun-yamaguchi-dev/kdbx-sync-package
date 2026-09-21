@@ -90,6 +90,8 @@ pull_debounce = 2
 ignore_window = 5
 ```
 
+Important: Copy the local file to the remote location, and choose its path as an remote path at this point. KDBX Sync does not create the remote database for you, and it will not automatically copy the local database to the remote location.
+
 The command creates:
 
 ```
